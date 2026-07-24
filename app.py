@@ -87,33 +87,39 @@ def extract_text_from_pdf(uploaded_file):
 # =========================================================
 # ASK GEMINI
 # =========================================================
-
 def ask_ai(prompt):
 
     if client is None:
 
         st.error(
-            "❌ Gemini API connection could not be created."
+            "❌ Groq AI connection could not be created."
         )
 
         return None
 
     try:
 
-        response = client.models.generate_content(
+        response = client.chat.completions.create(
 
             model=MODEL_NAME,
 
-            contents=prompt
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+
+            temperature=0.7
 
         )
 
-        return response.text
+        return response.choices[0].message.content
 
     except Exception as e:
 
         st.error(
-            "❌ Gemini AI could not generate a response."
+            "❌ Groq AI could not generate a response."
         )
 
         st.code(str(e))
