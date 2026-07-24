@@ -1,6 +1,6 @@
 import streamlit as st
 from pypdf import PdfReader
-from google import genai
+from groq import Groq
 
 
 # =========================================================
