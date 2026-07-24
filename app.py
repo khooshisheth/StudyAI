@@ -19,14 +19,13 @@ st.set_page_config(
 # =========================================================
 
 try:
-    client = genai.Client(
-        api_key=st.secrets["GEMINI_API_KEY"]
+    client = Groq(
+        api_key=st.secrets["GROQ_API_KEY"]
     )
 except Exception as e:
     client = None
 
-
-MODEL_NAME = "gemini-2.0-flash"
+MODEL_NAME = "llama-3.3-70b-versatile"
 
 
 # =========================================================
