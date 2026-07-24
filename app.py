@@ -1,6 +1,6 @@
 import streamlit as st
 from pypdf import PdfReader
-import ollama
+from google import genai
 
 
 # =========================================================
@@ -12,6 +12,21 @@ st.set_page_config(
     page_icon="🎓",
     layout="wide"
 )
+
+
+# =========================================================
+# GEMINI CONNECTION
+# =========================================================
+
+try:
+    client = genai.Client(
+        api_key=st.secrets["GEMINI_API_KEY"]
+    )
+except Exception as e:
+    client = None
+
+
+MODEL_NAME = "gemini-2.0-flash"
 
 
 # =========================================================
@@ -30,13 +45,6 @@ st.divider()
 
 
 # =========================================================
-# OLLAMA MODEL
-# =========================================================
-
-MODEL_NAME = "llama3.2:latest"
-
-
-# =========================================================
 # SIDEBAR
 # =========================================================
 
@@ -46,13 +54,9 @@ st.sidebar.write("Current AI Model:")
 
 st.sidebar.code(MODEL_NAME)
 
-st.sidebar.info(
-    "Make sure Ollama is running on your computer."
-)
-
 
 # =========================================================
-# FUNCTION TO EXTRACT TEXT FROM PDF
+# PDF TEXT EXTRACTION
 # =========================================================
 
 def extract_text_from_pdf(uploaded_file):
@@ -68,7 +72,6 @@ def extract_text_from_pdf(uploaded_file):
             text = page.extract_text()
 
             if text:
-
                 extracted_text += text + "\n"
 
         return extracted_text
@@ -83,42 +86,38 @@ def extract_text_from_pdf(uploaded_file):
 
 
 # =========================================================
-# FUNCTION TO ASK OLLAMA
+# ASK GEMINI
 # =========================================================
 
 def ask_ai(prompt):
 
+    if client is None:
+
+        st.error(
+            "❌ Gemini API connection could not be created."
+        )
+
+        return None
+
     try:
 
-        response = ollama.chat(
+        response = client.models.generate_content(
 
             model=MODEL_NAME,
 
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ]
+            contents=prompt
 
         )
 
-        return response["message"]["content"]
-
+        return response.text
 
     except Exception as e:
 
         st.error(
-            "❌ Could not connect to Ollama."
+            "❌ Gemini AI could not generate a response."
         )
 
-        st.write(
-            "Please make sure Ollama is running."
-        )
-
-        st.code(
-            str(e)
-        )
+        st.code(str(e))
 
         return None
 
@@ -246,7 +245,6 @@ if feature == "📄 Summarize Notes":
 
             else:
 
-                # Limit text to avoid extremely large requests
                 notes_for_ai = notes[:30000]
 
 
@@ -548,5 +546,5 @@ Now answer the student's question.
 st.divider()
 
 st.caption(
-    "🎓 StudyAI | Built with Python, Streamlit and Ollama"
+    "🎓 StudyAI | Built with Python, Streamlit and Gemini"
 )
